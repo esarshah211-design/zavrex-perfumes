@@ -1,0 +1,6 @@
+{
+  "name": "ZAVREX - Luxury Attar & Fragrance House",
+  "description": "Beyond Fragrance. Beyond Ordinary. Premium non-alcoholic artisanal attars and pure perfume oils crafted in Peshawar, Pakistan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
