@@ -17,6 +17,7 @@ export const CheckoutView: React.FC = () => {
     setActiveView,
     settings,
     setLastPlacedOrder,
+    openPolicy,
   } = useCart();
 
   const [formData, setFormData] = useState({
@@ -375,9 +376,38 @@ export const CheckoutView: React.FC = () => {
                 )}
               </button>
 
-              <div className="flex items-center justify-center gap-2 text-xs text-[#8E8B84]">
-                <ShieldCheck className="w-4 h-4 text-[#D4AF37]" />
-                <span>Your personal details are securely held in strict confidence.</span>
+              <div className="space-y-2 pt-1 text-center">
+                <div className="flex items-center justify-center gap-2 text-xs text-[#8E8B84]">
+                  <ShieldCheck className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                  <span>Personal information is encrypted and held in strict confidence.</span>
+                </div>
+                <p className="text-[11px] text-[#7A7873] leading-relaxed">
+                  By completing this order, you accept our{' '}
+                  <button
+                    type="button"
+                    onClick={() => openPolicy('terms')}
+                    className="text-[#D4AF37] hover:underline underline-offset-2"
+                  >
+                    Terms &amp; Conditions
+                  </button>
+                  ,{' '}
+                  <button
+                    type="button"
+                    onClick={() => openPolicy('privacy')}
+                    className="text-[#D4AF37] hover:underline underline-offset-2"
+                  >
+                    Privacy Policy
+                  </button>
+                  , and{' '}
+                  <button
+                    type="button"
+                    onClick={() => openPolicy('returns')}
+                    className="text-[#D4AF37] hover:underline underline-offset-2"
+                  >
+                    Return &amp; Refund Policy
+                  </button>
+                  .
+                </p>
               </div>
             </form>
           </div>

@@ -20,9 +20,10 @@ import { WhatsAppFloatingButton } from './components/WhatsAppFloatingButton';
 import { SearchModal } from './components/SearchModal';
 import { WishlistView } from './components/WishlistView';
 import { Footer } from './components/Footer';
+import { PolicyModal } from './components/PolicyModal';
 
 const AppContent: React.FC = () => {
-  const { activeView, selectedProduct, setSelectedProduct } = useCart();
+  const { activeView, selectedProduct, setSelectedProduct, activePolicy, closePolicy } = useCart();
   const [products, setProducts] = useState<Product[]>(getStoredProducts);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
@@ -130,6 +131,12 @@ const AppContent: React.FC = () => {
 
       {/* Luxury Brand Footer */}
       {activeView !== 'admin' && <Footer />}
+
+      {/* Global Legal & Consumer Policy Modal */}
+      <PolicyModal
+        policyType={activePolicy}
+        onClose={closePolicy}
+      />
     </div>
   );
 };

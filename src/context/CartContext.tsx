@@ -31,12 +31,17 @@ interface CartContextType {
   // Wishlist
   wishlist: string[];
   toggleWishlist: (productId: string) => void;
+  // Legal Policies Modal
+  activePolicy: 'privacy' | 'terms' | 'shipping' | 'returns' | null;
+  openPolicy: (policy: 'privacy' | 'terms' | 'shipping' | 'returns') => void;
+  closePolicy: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<BrandSettings>(getStoredSettings());
+  const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'shipping' | 'returns' | null>(null);
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('zavrex_cart_v1');
@@ -45,6 +50,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return [];
     }
   });
+
+  const openPolicy = (policy: 'privacy' | 'terms' | 'shipping' | 'returns') => setActivePolicy(policy);
+  const closePolicy = () => setActivePolicy(null);
 
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [promoDiscountPercent, setPromoDiscountPercent] = useState<number>(0);
@@ -253,6 +261,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLastPlacedOrder,
         wishlist,
         toggleWishlist,
+        activePolicy,
+        openPolicy,
+        closePolicy,
       }}
     >
       {children}

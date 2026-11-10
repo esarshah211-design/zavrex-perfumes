@@ -42,7 +42,13 @@ export const getStoredOrders = (): Order[] => {
       localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(INITIAL_ORDERS));
       return INITIAL_ORDERS;
     }
-    return JSON.parse(raw);
+    const parsed: Order[] = JSON.parse(raw);
+    // Security scrub: automatically purge legacy mock demo orders if present
+    const cleaned = parsed.filter(o => !o.id.startsWith('zvx-ord-901') && !o.id.startsWith('zvx-ord-902'));
+    if (cleaned.length !== parsed.length) {
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(cleaned));
+    }
+    return cleaned;
   } catch (e) {
     console.error('Error reading orders:', e);
     return INITIAL_ORDERS;
@@ -65,7 +71,13 @@ export const getStoredReviews = (): Review[] => {
       localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(INITIAL_REVIEWS));
       return INITIAL_REVIEWS;
     }
-    return JSON.parse(raw);
+    const parsed: Review[] = JSON.parse(raw);
+    // Security scrub: purge legacy mock reviews
+    const cleaned = parsed.filter(r => !['rev-1', 'rev-2', 'rev-3', 'rev-4'].includes(r.id));
+    if (cleaned.length !== parsed.length) {
+      localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(cleaned));
+    }
+    return cleaned;
   } catch (e) {
     console.error('Error reading reviews:', e);
     return INITIAL_REVIEWS;
@@ -114,8 +126,12 @@ export const getStoredInquiries = (): ContactInquiry[] => {
 };
 
 export const saveInquiry = (inquiry: Omit<ContactInquiry, 'id' | 'createdAt' | 'read'>): ContactInquiry => {
+  const sanitize = (text?: string, max = 300) => (text || '').replace(/<[^>]*>?/gm, '').trim().slice(0, max);
   const newInq: ContactInquiry = {
-    ...inquiry,
+    name: sanitize(inquiry.name, 100),
+    phone: sanitize(inquiry.phone, 30),
+    email: sanitize(inquiry.email || '', 100),
+    message: sanitize(inquiry.message, 1000),
     id: 'inq_' + Date.now(),
     createdAt: new Date().toISOString(),
     read: false,
@@ -125,26 +141,87 @@ export const saveInquiry = (inquiry: Omit<ContactInquiry, 'id' | 'createdAt' | '
   return newInq;
 };
 
-// Order creation with unique sequential / timestamp code
+// Secure Order Creation: Catalog-Reconciled Pricing & Input Sanitization
 export const createOrder = async (orderData: Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>): Promise<Order> => {
+  const sanitizeText = (str?: string, maxLen: number = 200) => {
+    if (!str) return '';
+    return str.replace(/<[^>]*>?/gm, '').trim().slice(0, maxLen);
+  };
+
+  const cleanCustomer = {
+    fullName: sanitizeText(orderData.customer.fullName, 100),
+    phone: sanitizeText(orderData.customer.phone, 25),
+    whatsapp: sanitizeText(orderData.customer.whatsapp, 25),
+    city: sanitizeText(orderData.customer.city, 50),
+    address: sanitizeText(orderData.customer.address, 250),
+    notes: orderData.customer.notes ? sanitizeText(orderData.customer.notes, 500) : undefined,
+  };
+
+  // Reconcile and verify prices against authentic store catalog to prevent client-side price tampering
+  const catalogProducts = getStoredProducts();
+  const currentSettings = getStoredSettings();
+
+  const validatedItems = orderData.items.map(item => {
+    const catalogProd = catalogProducts.find(p => p.id === item.productId);
+    const verifiedPrice = catalogProd?.prices[item.size] ?? item.price;
+    const verifiedQuantity = Math.max(1, Math.min(20, Math.floor(Number(item.quantity) || 1)));
+    return {
+      ...item,
+      name: catalogProd?.name || item.name,
+      price: verifiedPrice,
+      quantity: verifiedQuantity,
+    };
+  });
+
+  const verifiedSubtotal = validatedItems.reduce((acc, it) => acc + it.price * it.quantity, 0);
+
+  // Validate promotional discount
+  let verifiedDiscount = 0;
+  let verifiedPromo = orderData.promoCode;
+  if (verifiedPromo) {
+    const promoMatch = currentSettings.promoCodes?.find(
+      p => p.code.toUpperCase() === verifiedPromo?.toUpperCase() && p.active
+    );
+    if (promoMatch && (!promoMatch.minSpend || verifiedSubtotal >= promoMatch.minSpend)) {
+      verifiedDiscount = Math.round((verifiedSubtotal * promoMatch.discountPercent) / 100);
+    } else {
+      verifiedPromo = undefined;
+    }
+  }
+
+  const verifiedDeliveryFee =
+    verifiedSubtotal >= (currentSettings.freeDeliveryThreshold || 4000)
+      ? 0
+      : (currentSettings.standardDeliveryFee || 250);
+
+  const verifiedTotal = Math.max(0, verifiedSubtotal - verifiedDiscount + verifiedDeliveryFee);
+
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
   const now = new Date();
   const year = now.getFullYear();
   const orderNumber = `ZVX-${year}-${randomSuffix}`;
   
   const newOrder: Order = {
-    ...orderData,
+    customer: cleanCustomer,
+    items: validatedItems,
+    subtotal: verifiedSubtotal,
+    deliveryFee: verifiedDeliveryFee,
+    discountAmount: verifiedDiscount,
+    promoCode: verifiedPromo,
+    total: verifiedTotal,
+    paymentMethod: orderData.paymentMethod,
+    status: 'pending',
     id: `ord_${Date.now()}`,
     orderNumber,
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
   };
 
-  // Save locally
+  // Save in local repository
   const orders = [newOrder, ...getStoredOrders()];
   saveOrders(orders);
 
-  // Sync to Supabase if configured
+  // Sync to Supabase if configured (respects Row Level Security)
   if (isSupabaseConfigured && supabase) {
     try {
       await supabase.from('orders').insert({

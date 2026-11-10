@@ -78,55 +78,77 @@ export const CustomerReviewsSection: React.FC<{ isStandalonePage?: boolean }> = 
           </button>
         </div>
 
-        {/* Reviews Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {reviews.map((rev) => (
-            <div
-              key={rev.id}
-              className="p-6 bg-[#121216] border border-[#202026] flex flex-col justify-between"
-            >
-              <div>
-                {/* Star rating */}
-                <div className="flex items-center gap-1 mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-3.5 h-3.5 ${
-                        i < rev.rating
-                          ? 'text-[#D4AF37] fill-[#D4AF37]'
-                          : 'text-[#444]'
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                <h4 className="font-serif text-base font-medium text-[#F5F2EB] mb-2 leading-snug">
-                  "{rev.title}"
-                </h4>
-
-                <p className="text-xs text-[#9E9B95] leading-relaxed mb-6 font-light">
-                  {rev.comment}
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-[#1C1C24]">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-[#F5F2EB]">{rev.author}</span>
-                  <span className="text-[#8E8B84]">{rev.city}</span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] text-[#7A7873] mt-1">
-                  <span className="text-[#D4AF37]">{rev.productName}</span>
-                  {rev.verifiedPurchase && (
-                    <span className="flex items-center gap-0.5 text-emerald-400">
-                      <ShieldCheck className="w-3 h-3" />
-                      <span>Verified</span>
-                    </span>
-                  )}
-                </div>
-              </div>
+        {/* Reviews Grid or Empty Production State */}
+        {reviews.length === 0 ? (
+          <div className="p-8 sm:p-12 bg-[#121216] border border-[#202026] text-center max-w-2xl mx-auto space-y-4">
+            <div className="w-12 h-12 mx-auto rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37]">
+              <Star className="w-6 h-6 fill-[#D4AF37]" />
             </div>
-          ))}
-        </div>
+            <h3 className="font-serif text-2xl text-[#F5F2EB]">First Appraisals Await</h3>
+            <p className="text-xs text-[#8E8B84] leading-relaxed max-w-lg mx-auto">
+              As an artisanal fragrance atelier in Peshawar, we take pride in genuine, verified feedback. Experience our 100% pure concentrated attars and be the first to share your appraisal with our community.
+            </p>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAddModal(true)}
+                className="px-6 py-2.5 bg-[#D4AF37] hover:bg-[#E5C378] text-black font-semibold text-xs uppercase tracking-wider transition-colors inline-flex items-center gap-2"
+              >
+                <MessageSquarePlus className="w-4 h-4" />
+                <span>Submit Your Review</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {reviews.map((rev) => (
+              <div
+                key={rev.id}
+                className="p-6 bg-[#121216] border border-[#202026] flex flex-col justify-between"
+              >
+                <div>
+                  {/* Star rating */}
+                  <div className="flex items-center gap-1 mb-3">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3.5 h-3.5 ${
+                          i < rev.rating
+                            ? 'text-[#D4AF37] fill-[#D4AF37]'
+                            : 'text-[#444]'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <h4 className="font-serif text-base font-medium text-[#F5F2EB] mb-2 leading-snug">
+                    "{rev.title}"
+                  </h4>
+
+                  <p className="text-xs text-[#9E9B95] leading-relaxed mb-6 font-light">
+                    {rev.comment}
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-[#1C1C24]">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-[#F5F2EB]">{rev.author}</span>
+                    <span className="text-[#8E8B84]">{rev.city}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-[#7A7873] mt-1">
+                    <span className="text-[#D4AF37]">{rev.productName}</span>
+                    {rev.verifiedPurchase && (
+                      <span className="flex items-center gap-0.5 text-emerald-400">
+                        <ShieldCheck className="w-3 h-3" />
+                        <span>Verified</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Add Review Modal */}
         {showAddModal && (

@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useCart } from '../context/CartContext';
-import { PolicyModal } from './PolicyModal';
 import { MessageCircle, MapPin, Instagram, ShieldCheck, Heart } from 'lucide-react';
 import { generateWhatsAppLink } from '../lib/storage';
 
 export const Footer: React.FC = () => {
-  const { settings, setActiveView } = useCart();
-  const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'shipping' | 'returns' | null>(null);
+  const { settings, setActiveView, openPolicy } = useCart();
 
   const categories = [
     { name: "Men's Collection", id: "Men's Collection" },
@@ -110,7 +108,7 @@ export const Footer: React.FC = () => {
               <ul className="space-y-2">
                 <li>
                   <button
-                    onClick={() => setActivePolicy('shipping')}
+                    onClick={() => openPolicy('shipping')}
                     className="hover:text-[#D4AF37] transition-colors"
                   >
                     Nationwide Shipping Policy
@@ -118,15 +116,15 @@ export const Footer: React.FC = () => {
                 </li>
                 <li>
                   <button
-                    onClick={() => setActivePolicy('returns')}
+                    onClick={() => openPolicy('returns')}
                     className="hover:text-[#D4AF37] transition-colors"
                   >
-                    Return &amp; Exchange Guarantee
+                    Return &amp; Refund Policy
                   </button>
                 </li>
                 <li>
                   <button
-                    onClick={() => setActivePolicy('privacy')}
+                    onClick={() => openPolicy('privacy')}
                     className="hover:text-[#D4AF37] transition-colors"
                   >
                     Privacy Policy
@@ -134,7 +132,7 @@ export const Footer: React.FC = () => {
                 </li>
                 <li>
                   <button
-                    onClick={() => setActivePolicy('terms')}
+                    onClick={() => openPolicy('terms')}
                     className="hover:text-[#D4AF37] transition-colors"
                   >
                     Terms &amp; Conditions
@@ -184,12 +182,6 @@ export const Footer: React.FC = () => {
           </div>
         </div>
       </footer>
-
-      {/* Policy Modal */}
-      <PolicyModal
-        policyType={activePolicy}
-        onClose={() => setActivePolicy(null)}
-      />
     </>
   );
 };

@@ -213,10 +213,6 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleQuickFillDemo = () => {
-    setLoginUsername('admin');
-    setLoginPassword('esarshah1234');
-  };
 
   // Order Status Update
   const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
@@ -416,17 +412,14 @@ export const AdminDashboard: React.FC = () => {
           </form>
 
           <div className="mt-6 pt-4 border-t border-[#1F1F26] flex items-center justify-between text-xs text-[#8E8B84]">
-            <button
-              type="button"
-              onClick={handleQuickFillDemo}
-              className="text-[#D4AF37] hover:underline"
-            >
-              Fill Admin Credentials
-            </button>
+            <span className="text-[11px] text-[#7A7873] flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Authorized personnel only</span>
+            </span>
             <button
               type="button"
               onClick={() => setActiveView('home')}
-              className="text-[#8E8B84] hover:text-[#F5F2EB]"
+              className="text-[#D4AF37] hover:underline"
             >
               Back to Store
             </button>

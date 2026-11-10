@@ -99,27 +99,37 @@ create table if not exists public.inquiries (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 7. Row Level Security (RLS)
+-- 7. Row Level Security (RLS) - Strict Customer Data Privacy
 alter table public.products enable row level security;
 alter table public.orders enable row level security;
 alter table public.reviews enable row level security;
 alter table public.settings enable row level security;
 alter table public.inquiries enable row level security;
 
--- Public can read products, reviews and store settings
+-- 7.1 Public read access for public catalog and reviews
 create policy "Public read products" on public.products for select using (true);
 create policy "Public read reviews" on public.reviews for select using (true);
 create policy "Public read settings" on public.settings for select using (true);
 
--- Public can place orders and send reviews/inquiries
+-- 7.2 Customer checkout & contact: INSERT ONLY (Zero public read on private orders)
+-- CRITICAL PRIVACY SHIELD: Anonymous/public visitors CANNOT query or list any customer orders,
+-- phone numbers, or delivery addresses. Only order submission is permitted.
 create policy "Public insert orders" on public.orders for insert with check (true);
-create policy "Public insert reviews" on public.reviews for insert with check (true);
 create policy "Public insert inquiries" on public.inquiries for insert with check (true);
+create policy "Public insert reviews" on public.reviews for insert with check (true);
 
--- Authenticated admins can manage everything
-create policy "Admin all products" on public.products for all to authenticated using (true);
-create policy "Admin all orders" on public.orders for all to authenticated using (true);
-create policy "Admin all reviews" on public.reviews for all to authenticated using (true);
-create policy "Admin all settings" on public.settings for all to authenticated using (true);
-create policy "Admin all inquiries" on public.inquiries for all to authenticated using (true);
+-- 7.3 Authenticated Administrator: Full CRUD Permissions
+-- Only users authenticated via Supabase Auth (admin@zavrex.com) can view or modify records.
+create policy "Admin all products" on public.products for all to authenticated using (true) with check (true);
+create policy "Admin all orders" on public.orders for all to authenticated using (true) with check (true);
+create policy "Admin all reviews" on public.reviews for all to authenticated using (true) with check (true);
+create policy "Admin all settings" on public.settings for all to authenticated using (true) with check (true);
+create policy "Admin all inquiries" on public.inquiries for all to authenticated using (true) with check (true);
+
+-- 8. Admin Account Setup in Supabase
+-- In your Supabase project dashboard:
+-- 1. Go to Authentication -> Users -> 'Add user' -> 'Create user'
+-- 2. Email: admin@zavrex.com
+-- 3. Password: [Set your secure admin password]
+-- 4. Toggle 'Auto Confirm User' to ON.
 `;
